@@ -1,4 +1,3 @@
-import re
 import webbrowser
 import cv2
 import numpy as np
@@ -6,7 +5,6 @@ import pytesseract
 from googlesearch import search
 import tkinter as tk
 from PIL import ImageGrab, ImageOps
-import roi
 
 # Configura pytesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -24,10 +22,15 @@ def extract_text(image):
     print(text)
     return text
 
-def extract_answers(text):
-    pattern = r'\b[A-D]:\s*'
-    answers = re.split(pattern, text)[1:]
-    return answers
+def process_answers(answers_text):
+    answers_text = remove_special_chars(answers_text)
+    answers_lines = answers_text.splitlines()
+    answers_dict = {}
+    for line in answers_lines:
+        if len(line) > 1:
+            answers_dict[line[0]] = line[2:]
+    return answers_dict
+
 
 def google_search(query):
     results = []
@@ -47,14 +50,17 @@ def show_popup(occurrences):
     window.title("Risultati")
 
     for i, (answer, count) in enumerate(occurrences):
-        label = tk.Label(window, text=f"{i + 1}. {answer}: {count} occorrenze")
-        label.pack()
+        answer_label = tk.Label(window, text=f"{answer}")
+        answer_label.grid(row=i, column=0)
+        count_label = tk.Label(window, text=f"{count} occorrenze")
+        count_label.grid(row=i, column=1)
 
     window.mainloop()
 
 def open_browser_with_question(question):
     url = f"https://www.google.com/search?q={question}"
     webbrowser.open(url)
+
 
 def main():
     # Definisci la regione dello schermo da catturare (x, y, larghezza, altezza)
@@ -68,8 +74,12 @@ def main():
     answers_screenshot = capture_screen(answers_region)
     answers_text = extract_text(answers_screenshot)
     answers_text = remove_special_chars(answers_text)
-    answers = extract_answers(answers_text)
     answers = answers_text.splitlines()
+
+    # Assicurati che le risposte vengano estratte correttamente
+    print("Risposte estratte:")
+    for answer in answers:
+        print(answer)
 
     browser = open_browser_with_question(question_text)
 
@@ -83,7 +93,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
 
