@@ -1,3 +1,4 @@
+import re
 import webbrowser
 import cv2
 import numpy as np
@@ -40,8 +41,9 @@ def google_search(query):
 
 def count_occurrences(text, answers):
     occurrences = []
+    text = text.lower()
     for answer in answers:
-        count = text.lower().count(answer.lower())
+        count = text.count(answer.lower())
         occurrences.append((answer, count))
     return occurrences
 
@@ -76,21 +78,26 @@ def main():
     answers_text = remove_special_chars(answers_text)
     answers = answers_text.splitlines()
 
-    # Assicurati che le risposte vengano estratte correttamente
-    print("Risposte estratte:")
+# Rimuovi le lettere A, B, C e D dalle risposte e separale
+    cleaned_answers = []
     for answer in answers:
-        print(answer)
+      split_answers = re.split(r'[A-D]\s', answer)[1:]
+      cleaned_answers.extend(split_answers)
+
+# Assicurati che le risposte vengano estratte correttamente
+    print("Risposte estratte:")
+    for answer in cleaned_answers:
+     print(answer)
 
     browser = open_browser_with_question(question_text)
 
     search_results = google_search(question_text)
     search_text = " ".join(search_results)
 
-    occurrences = count_occurrences(search_text, answers)
+    occurrences = count_occurrences(search_text, cleaned_answers)
     occurrences.sort(key=lambda x: x[1], reverse=True)
 
     show_popup(occurrences)
-
 if __name__ == "__main__":
     main()
 
